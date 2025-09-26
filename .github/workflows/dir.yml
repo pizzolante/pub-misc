@@ -1,0 +1,45 @@
+name: directory-listing
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  generate-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate directory listing
+        uses: gacts/directory-listing@v1
+        with:
+          target: .
+          # Esempio di esclusioni:
+          ignore: |
+            CNAME
+            README.md
+          #   **/index.html
+          #   node_modules/**,**/*.log
+          # show-hidden: true
+          # overwrite: true
+
+      - name: Upload artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: '.'
+
+  deploy:
+    needs: generate-index
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
